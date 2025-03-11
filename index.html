@@ -37,7 +37,7 @@
         button {
             width: 100%;
             padding: 10px;
-            background-color: #28a745;
+            background-color: #003366;
             color: white;
             border: none;
             border-radius: 5px;
@@ -46,48 +46,46 @@
             margin-top: 10px;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #002855;
         }
-        #qrcode {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .kids-container {
-            margin-top: 10px;
+        #qrcodeContainer {
+            display: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="formContainer">
         <h2>MSTS Registration</h2>
         <input type="text" id="name" placeholder="Enter Name" required>
         <input type="text" id="phone" placeholder="Enter Phone Number" required>
         <input type="email" id="email" placeholder="Enter Email ID" required>
         <input type="text" id="spouse" placeholder="Enter Spouse Name">
-        <div class="kids-container" id="kidsContainer"></div>
         <button onclick="addKid()">Add Kid</button>
-        <button onclick="generateQRCode()">Generate QR Code</button>
-        <button onclick="addToAppleWallet()">Add to Apple Wallet</button>
-        <button onclick="addToGoogleWallet()">Add to Google Wallet</button>
+        <div id="kidsContainer"></div>
+        <button onclick="generateQRCode()">Submit</button>
+    </div>
+    
+    <div id="qrcodeContainer">
         <div id="qrcode"></div>
+        <button id="appleWalletBtn" onclick="addToAppleWallet()">Add to Apple Wallet</button>
+        <button id="googleWalletBtn" onclick="addToGoogleWallet()">Add to Google Wallet</button>
     </div>
     
     <script>
         function addKid() {
             var kidHtml = `
-                <div class="kid-entry">
-                    <input type="text" class="kid-name" placeholder="Enter Kid's Name">
-                    <input type="date" class="kid-dob" placeholder="Enter Kid's DOB">
+                <div class='kid-entry'>
+                    <input type='text' class='kid-name' placeholder='Enter Kid's Name'>
+                    <input type='date' class='kid-dob' placeholder='Enter Kid DOB'>
                 </div>`;
             $('#kidsContainer').append(kidHtml);
         }
-
+        
         function generateQRCode() {
             var name = $('#name').val().trim();
             var phone = $('#phone').val().trim();
             var email = $('#email').val().trim();
-            var spouse = $('#spouse').val().trim();
             
             if (name === "" || phone === "" || email === "") {
                 alert("Please enter Name, Phone Number, and Email ID");
@@ -102,39 +100,12 @@
                     kids.push({ name: kidName, dob: kidDob });
                 }
             });
-
+            var spouse = $('#spouse').val().trim();
             var jsonData = JSON.stringify({ name: name, phone: phone, email: email, spouse: spouse, kids: kids });
             
-            $('#qrcode').empty();
-            $('#qrcode').qrcode({ width: 200, height: 200, text: jsonData });
-        }
-
-        function addToAppleWallet() {
-            var name = $('#name').val().trim();
-            var phone = $('#phone').val().trim();
-            var email = $('#email').val().trim();
-            
-            if (name === "" || phone === "" || email === "") {
-                alert("Please enter Name, Phone Number, and Email ID");
-                return;
-            }
-
-            var jsonData = JSON.stringify({ name: name, phone: phone, email: email });
-            window.location.href = `https://yourserver.com/generate-pass?data=${encodeURIComponent(jsonData)}`;
-        }
-
-        function addToGoogleWallet() {
-            var name = $('#name').val().trim();
-            var phone = $('#phone').val().trim();
-            var email = $('#email').val().trim();
-            
-            if (name === "" || phone === "" || email === "") {
-                alert("Please enter Name, Phone Number, and Email ID");
-                return;
-            }
-
-            var jsonData = JSON.stringify({ name: name, phone: phone, email: email });
-            window.location.href = `https://wallet.google.com/inapp/add?json=${encodeURIComponent(jsonData)}`;
+            $('#formContainer').hide();
+            $('#qrcodeContainer').show();
+            $('#qrcode').empty().qrcode({ width: 200, height: 200, text: jsonData });
         }
     </script>
 </body>
