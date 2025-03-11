@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #qrcode {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .kids-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Generate QR Code</h2>
+        <input type="text" id="name" placeholder="Enter Name" required>
+        <input type="text" id="phone" placeholder="Enter Phone Number" required>
+        <input type="email" id="email" placeholder="Enter Email ID" required>
+        <input type="text" id="spouse" placeholder="Enter Spouse Name">
+        <div class="kids-container" id="kidsContainer"></div>
+        <button onclick="addKid()">Add Kid</button>
+        <button onclick="generateQRCode()">Submit</button>
+        <div id="qrcode"></div>
+    </div>
+    
+    <script>
+        function addKid() {
+            var kidHtml = `
+                <div class="kid-entry">
+                    <input type="text" class="kid-name" placeholder="Enter Kid's Name">
+                    <input type="date" class="kid-dob" placeholder="Enter Kid's DOB">
+                </div>`;
+            $('#kidsContainer').append(kidHtml);
+        }
+
+        function generateQRCode() {
+            var name = $('#name').val().trim();
+            var phone = $('#phone').val().trim();
+            var email = $('#email').val().trim();
+            var spouse = $('#spouse').val().trim();
+            
+            if (name === "" || phone === "" || email === "") {
+                alert("Please enter Name, Phone Number, and Email ID");
+                return;
+            }
+
+            var kids = [];
+            $('.kid-entry').each(function() {
+                var kidName = $(this).find('.kid-name').val().trim();
+                var kidDob = $(this).find('.kid-dob').val().trim();
+                if (kidName !== "" && kidDob !== "") {
+                    kids.push({ name: kidName, dob: kidDob });
+                }
+            });
+
+            var jsonData = JSON.stringify({ name: name, phone: phone, email: email, spouse: spouse, kids: kids });
+            
+            $('#qrcode').empty();
+            $('#qrcode').qrcode({ width: 200, height: 200, text: jsonData });
+        }
+    </script>
+</body>
+</html>
