@@ -60,14 +60,16 @@
 </head>
 <body>
     <div class="container">
-        <h2>Generate QR Code</h2>
+        <h2>MSTS Registration</h2>
         <input type="text" id="name" placeholder="Enter Name" required>
         <input type="text" id="phone" placeholder="Enter Phone Number" required>
         <input type="email" id="email" placeholder="Enter Email ID" required>
         <input type="text" id="spouse" placeholder="Enter Spouse Name">
         <div class="kids-container" id="kidsContainer"></div>
         <button onclick="addKid()">Add Kid</button>
-        <button onclick="generateQRCode()">Submit</button>
+        <button onclick="generateQRCode()">Generate QR Code</button>
+        <button onclick="addToAppleWallet()">Add to Apple Wallet</button>
+        <button onclick="addToGoogleWallet()">Add to Google Wallet</button>
         <div id="qrcode"></div>
     </div>
     
@@ -105,6 +107,34 @@
             
             $('#qrcode').empty();
             $('#qrcode').qrcode({ width: 200, height: 200, text: jsonData });
+        }
+
+        function addToAppleWallet() {
+            var name = $('#name').val().trim();
+            var phone = $('#phone').val().trim();
+            var email = $('#email').val().trim();
+            
+            if (name === "" || phone === "" || email === "") {
+                alert("Please enter Name, Phone Number, and Email ID");
+                return;
+            }
+
+            var jsonData = JSON.stringify({ name: name, phone: phone, email: email });
+            window.location.href = `https://yourserver.com/generate-pass?data=${encodeURIComponent(jsonData)}`;
+        }
+
+        function addToGoogleWallet() {
+            var name = $('#name').val().trim();
+            var phone = $('#phone').val().trim();
+            var email = $('#email').val().trim();
+            
+            if (name === "" || phone === "" || email === "") {
+                alert("Please enter Name, Phone Number, and Email ID");
+                return;
+            }
+
+            var jsonData = JSON.stringify({ name: name, phone: phone, email: email });
+            window.location.href = `https://wallet.google.com/inapp/add?json=${encodeURIComponent(jsonData)}`;
         }
     </script>
 </body>
