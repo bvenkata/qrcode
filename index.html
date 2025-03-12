@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,7 +60,7 @@
         <input type="text" id="name" placeholder="Enter Name" required>
         <input type="text" id="phone" placeholder="Enter Phone Number" required>
         <input type="email" id="email" placeholder="Enter Email ID" required>
-        <input type="text" id="spouse" placeholder="Enter Spouse Name">
+        <input type="text" id="spouse" placeholder="Enter Spouse Name" required>
         <button onclick="addKid()">Add Kid</button>
         <div id="kidsContainer"></div>
         <button onclick="generateQRCode()">Submit</button>
@@ -68,16 +68,16 @@
     
     <div id="qrcodeContainer">
         <div id="qrcode"></div>
-        <button id="appleWalletBtn" onclick="addToAppleWallet()">Add to Apple Wallet</button>
-        <button id="googleWalletBtn" onclick="addToGoogleWallet()">Add to Google Wallet</button>
+        <canvas id="qrCanvas" style="display:none;"></canvas>
+        <button id="downloadQRBtn" onclick="downloadQRCode()">Download QR Code</button>
     </div>
     
     <script>
         function addKid() {
             var kidHtml = `
                 <div class='kid-entry'>
-                    <input type='text' class='kid-name' placeholder='Enter Kid's Name'>
-                    <input type='date' class='kid-dob' placeholder='Enter Kid DOB'>
+                    <input type='text' class='kid-name' placeholder='Enter Kid\'s Name' required>
+                    <input type='date' class='kid-dob' required>
                 </div>`;
             $('#kidsContainer').append(kidHtml);
         }
@@ -86,9 +86,10 @@
             var name = $('#name').val().trim();
             var phone = $('#phone').val().trim();
             var email = $('#email').val().trim();
-            
-            if (name === "" || phone === "" || email === "") {
-                alert("Please enter Name, Phone Number, and Email ID");
+            var spouse = $('#spouse').val().trim();
+
+            if (!name || !phone || !email || !spouse) {
+                alert("All fields are required");
                 return;
             }
 
@@ -96,16 +97,46 @@
             $('.kid-entry').each(function() {
                 var kidName = $(this).find('.kid-name').val().trim();
                 var kidDob = $(this).find('.kid-dob').val().trim();
-                if (kidName !== "" && kidDob !== "") {
-                    kids.push({ name: kidName, dob: kidDob });
+                if (!kidName || !kidDob) {
+                    alert("Please enter all Kid's Name and DOB fields");
+                    return;
                 }
+                kids.push({ name: kidName, dob: kidDob });
             });
-            var spouse = $('#spouse').val().trim();
-            var jsonData = JSON.stringify({ name: name, phone: phone, email: email, spouse: spouse, kids: kids });
-            
+
+            var jsonData = JSON.stringify({ name, phone, email, spouse, kids });
             $('#formContainer').hide();
             $('#qrcodeContainer').show();
-            $('#qrcode').empty().qrcode({ width: 200, height: 200, text: jsonData });
+            $('#qrcode').empty();
+            new QRCode(document.getElementById('qrcode'), {
+                text: jsonData,
+                width: 200,
+                height: 200
+            });
+        }
+
+        function downloadQRCode() {
+            var qrImg = document.querySelector('#qrcode img');
+            if (!qrImg) {
+                alert('QR Code not generated yet!');
+                return;
+            }
+            var canvas = document.getElementById('qrCanvas');
+            var ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            var tempImg = new Image();
+            tempImg.crossOrigin = 'Anonymous';
+            tempImg.src = qrImg.src;
+            tempImg.onload = function() {
+                ctx.drawImage(tempImg, 0, 0, 200, 200);
+                var link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'QRCode.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
         }
     </script>
 </body>
