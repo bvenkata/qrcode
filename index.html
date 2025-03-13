@@ -120,6 +120,7 @@
             // ✅ Send data to PassSlot to create an Apple Wallet Pass
             fetch("https://api.passslot.com/v1/passes", {
                 method: "POST",
+                mode: "no-cors", 
                 headers: {
                     "Content-Type": "application/json"
                 },
