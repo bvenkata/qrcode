@@ -105,14 +105,48 @@
             });
 
             var jsonData = JSON.stringify({ name, phone, email, spouse, kids });
+            let encodedData = btoa(jsonData); // Convert to Base64
+
+            // Hide form, show QR Code
             $('#formContainer').hide();
             $('#qrcodeContainer').show();
             $('#qrcode').empty();
             new QRCode(document.getElementById('qrcode'), {
-                text: jsonData,
+                text: encodedData, // Use Base64 encoded data
                 width: 200,
                 height: 200
             });
+
+            // ✅ Send data to PassSlot to create an Apple Wallet Pass
+            fetch("https://api.passslot.com/v1/passes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "passType": "generic",
+                    "barcode": {
+                        "message": encodedData, // Pass Base64 QR Code
+                        "format": "QR"
+                    },
+                    "logoText": "MSTS Registration"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.url) {
+                    // ✅ Remove old button before adding new one
+                    $("#qrcodeContainer button.addToWallet").remove();
+
+                    // ✅ Create "Add to Apple Wallet" button dynamically
+                    $("#qrcodeContainer").append(`
+                        <button class="addToWallet" onclick="window.location.href='${data.url}'">Add to Apple Wallet</button>
+                    `);
+                } else {
+                    alert("Failed to create Apple Wallet pass");
+                }
+            })
+            .catch(error => console.error("Error:", error));
         }
 
         function downloadQRCode() {
