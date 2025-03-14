@@ -89,7 +89,7 @@
             var spouse = $('#spouse').val().trim();
 
             if (!name || !phone || !email || !spouse) {
-                alert("All fields are required");
+                console.log("All fields are required");
                 return;
             }
 
@@ -98,36 +98,34 @@
                 var kidName = $(this).find('.kid-name').val().trim();
                 var kidDob = $(this).find('.kid-dob').val().trim();
                 if (!kidName || !kidDob) {
-                    alert("Please enter all Kid's Name and DOB fields");
+                    console.log("Please enter all Kid's Name and DOB fields");
                     return;
                 }
                 kids.push({ name: kidName, dob: kidDob });
             });
 
             var jsonData = JSON.stringify({ name, phone, email, spouse, kids });
-            let encodedData = btoa(jsonData); // Convert to Base64
+            let encodedData = btoa(jsonData);
 
-            // Hide form, show QR Code
             $('#formContainer').hide();
             $('#qrcodeContainer').show();
             $('#qrcode').empty();
             new QRCode(document.getElementById('qrcode'), {
-                text: encodedData, // Use Base64 encoded data
+                text: encodedData,
                 width: 200,
                 height: 200
             });
 
-            // ✅ Send data to PassSlot to create an Apple Wallet Pass
-            fetch("https://api.passslot.com/v1/passes", {
+            fetch("https://www.passslot.com/api/v1/passes", {
                 method: "POST",
-                mode: "no-cors", 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer tyKAtRMzkKRDNgccTfiChaWOCGuXKFXhDJebSHfCszeyRsIXQqfaIXpVdmvsIVNR"
                 },
                 body: JSON.stringify({
                     "passType": "generic",
                     "barcode": {
-                        "message": encodedData, // Pass Base64 QR Code
+                        "message": encodedData,
                         "format": "QR"
                     },
                     "logoText": "MSTS Registration"
@@ -135,43 +133,17 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log("PassSlot API Response:", data);
                 if (data.url) {
-                    // ✅ Remove old button before adding new one
                     $("#qrcodeContainer button.addToWallet").remove();
-
-                    // ✅ Create "Add to Apple Wallet" button dynamically
                     $("#qrcodeContainer").append(`
                         <button class="addToWallet" onclick="window.location.href='${data.url}'">Add to Apple Wallet</button>
                     `);
                 } else {
-                    alert("Failed to create Apple Wallet pass");
+                    console.log("Failed to create Apple Wallet pass");
                 }
             })
-            .catch(error => console.error("Error:", error));
-        }
-
-        function downloadQRCode() {
-            var qrImg = document.querySelector('#qrcode img');
-            if (!qrImg) {
-                alert('QR Code not generated yet!');
-                return;
-            }
-            var canvas = document.getElementById('qrCanvas');
-            var ctx = canvas.getContext('2d');
-            canvas.width = 200;
-            canvas.height = 200;
-            var tempImg = new Image();
-            tempImg.crossOrigin = 'Anonymous';
-            tempImg.src = qrImg.src;
-            tempImg.onload = function() {
-                ctx.drawImage(tempImg, 0, 0, 200, 200);
-                var link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = 'QRCode.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
+            .catch(error => console.error("Fetch Error:", error));
         }
     </script>
 </body>
