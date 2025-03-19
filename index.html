@@ -117,15 +117,14 @@
 
              fetch("https://qr-code-generator-wr3i.onrender.com/generate-pass", {
                 method: "POST",
-                body: JSON.stringify({
-                    "name": name,
-                    "phone": phone,
-                    "email": email,
-                    "spouse": spouse,
-                    "kids": kids
-                })
-            }
-            )
+                headers: {
+            "Content-Type": "application/json"
+        },
+                body: JSON.stringify({ name: name,
+    phone: phone,
+    email: email,
+    spouse: spouse,
+    kids: kids })})
             .then(response => response.json())
             .then(data => {
                 console.log("PassSlot API Response:", data);
