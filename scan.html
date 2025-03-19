@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #002855;
+        }
+        #scannerContainer {
+            display: none;
+        }
+        #video {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+        #scanResult {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Scan QR Code</h2>
+        <button onclick="startScanning()">Start Scanning</button>
+        <div id="scannerContainer">
+            <video id="video" width="300" height="300"></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <button onclick="stopScanning()">Stop Scanning</button>
+        </div>
+        <p id="scanResult"></p>
+    </div>
+
+    <script>
+        let video = document.getElementById("video");
+        let canvasElement = document.getElementById("canvas");
+        let canvas = canvasElement.getContext("2d");
+        let stream;
+
+        function startScanning() {
+            $('#scannerContainer').show();
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(function(mediaStream) {
+                    stream = mediaStream;
+                    video.srcObject = stream;
+                    video.play();
+                    requestAnimationFrame(tick);
+                })
+                .catch(function(err) {
+                    console.error("Camera access error:", err);
+                    alert("Unable to access camera: " + err.message);
+                    $('#scannerContainer').hide();
+                });
+        }
+
+        function stopScanning() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            $('#scannerContainer').hide();
+            $('#scanResult').text('');
+        }
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                let imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                let code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    console.log("QR Code detected:", code.data);
+                    try {
+                        let decodedData = atob(code.data); // Decode base64
+                        let jsonData = JSON.parse(decodedData); // Parse JSON
+                        let id = jsonData.id || "No ID found";
+                        $('#scanResult').text(`ID: ${id}`);
+                        console.log("Decoded Data:", jsonData);
+                        stopScanning(); // Stop after successful scan
+                    } catch (e) {
+                        console.error("Decoding error:", e);
+                        $('#scanResult').text("Error decoding QR code");
+                    }
+                    return;
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+    </script>
+</body>
+</html>
