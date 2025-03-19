@@ -115,17 +115,21 @@
                 height: 200
             });
 
+            var requestData = {
+                name: name,
+                phone: phone,
+                email: email,
+                spouse: spouse,
+                kids: kids
+            };
+
              fetch("https://qr-code-generator-wr3i.onrender.com/generate-pass", {
                 method: "POST",
                 headers: {
             "Content-Type": "application/json"
         },
                 body: JSON.stringify({ name: name,
-    phone: phone,
-    email: email,
-    spouse: spouse,
-    kids: kids ,
-    url:"http://test.com" })})
+                url:requestData })})
             .then(response => response.json())
             .then(data => {
                 console.log("PassSlot API Response:", data);
